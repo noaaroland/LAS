@@ -417,17 +417,24 @@ my $logdir = $LasConfig{jakarta_home}."/content".$LasConfig{uipath}."/logs";
     }
 
 #
-# Get the temp dir.
+# Get the temp dirs.
 #
 my $tds_temp = $serverConf."/temp";
 if ( !(-d $tds_temp) ) {
    &File::Path::mkpath($tds_temp);
    print "Creating the $tds_temp directory.\n";
 }
+#
+my $las_temp = $serverConf."/scripts/temp";
+if ( !(-d $las_temp) ) {
+   &File::Path::mkpath($las_temp);
+   print "Creating the $las_temp directory.\n";
+}
 
 print "\n\n";
 
 $LasConfig{tds_temp} = $tds_temp;
+$LasConfig{las_temp} = $las_temp;
 
 #
 # Get the data dir.
@@ -513,6 +520,7 @@ foreach my $script (@Scripts){
         s/\@MODULES_LIST\@/$modules_list/g;
         s/\@TITLE\@/$LasConfig{title}/g;
         s/\@ADMIN_EMAIL\@/$LasConfig{email}/g;
+        s/\@LAS_TEMP\@/$LasConfig{las_temp}/g;
         s/\@WEBAPPS\@/$LasConfig{webapps}/g;
         s/\@TDS_DATA\@/$LasConfig{tds_data}/g;
         s/\@TDS_DYNADATA\@/$LasConfig{tds_dynadata}/g;

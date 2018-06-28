@@ -86,9 +86,16 @@
   var initReq = new LASRequest(initReq_xml);
   initReq.removeProperty('ferret', 'annotations');
   var initView = initReq.getProperty('ferret','view');
-  var initStep = initReq.getProperty('ferret','time_step');//initial time step 
+  var initStep = initReq.getProperty('ferret','time_step');//initial time step
   var dsId   = "$dsID";                              //initial dataset ID
   var varId  = "$varID";                             //initial variable ID
+
+  #set($propts = $las_config.getVariablePropertyValue($dsID, $varID, "ferret", "time_step"))
+
+  var propStep = "$propts";
+  if ( initStep == null ) {
+      initStep = propStep;
+  }
 
   var DW;                                            //date widget
   var MW1;  //menu widget for starting time
@@ -249,6 +256,7 @@
   function updateLASRequest(){
       var req = new LASRequest(initReq_xml);
       var theView = req.getProperty('ferret','view');
+      alert("timeInterval: " + timeInterval);
       req.setProperty('ferret','time_step',timeInterval);
       req.setProperty('product_server','ps_timeout',99999999);
       initStep = timeInterval;
@@ -1212,10 +1220,10 @@
 
       if(initStep != null){
           editorContent += "&nbsp;<b>Plot every&nbsp;</b><input type='text' id='timeStep'" + 
-                           " value='"+initStep+"' size='4'><b>th frame</b><br>";
+                           " value='"+initStep+"' size='4'><b> frames</b><br>";
       }else{
           editorContent += "&nbsp;<b>Plot every&nbsp;</b><input type='text' id='timeStep'" + 
-                           " value='1' size='4'><b>th frame</b><br>";
+                           " value='1' size='4'><b>frames</b><br>";
       }
 
       editorContent += "<br><div id='SelectVariable'></div><br>" +

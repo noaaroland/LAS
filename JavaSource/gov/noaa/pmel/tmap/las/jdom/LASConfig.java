@@ -248,7 +248,7 @@ public class LASConfig extends LASDocument {
     		}
     	}
 
-    	return new HashMap<String, String>();
+   	    return new HashMap<String, String>();
     }
     public String getIDs(String data_url) throws JDOMException, LASException, HttpException, IOException {
         Map<String, String> ids = getIDMap(data_url);
@@ -259,7 +259,6 @@ public class LASConfig extends LASDocument {
 
             // The code below which is turned off by default allows data sets to be added dynamically to an LAS.
             // Uncommmet the code below to re-enable this capability
-
 
             // Add the data sets via addXML, then get the ID map again
         	
@@ -3828,10 +3827,21 @@ public class LASConfig extends LASDocument {
 	    return "";
 	}
     /**
-	 * Extract a property value from a variable given its XPath as an
-	 * Array List of NameValueBeans
+     * Extract a property value from a variable given its dsid and varid as an
+     * Array List of NameValueBeans
+     * @param dsid data set id
+     * @param varid the variable id
+     * @return value the property
+     *
+     */
+	public String getVariablePropertyValue(String dsid, String varid, String group, String property) throws JDOMException {
+	    String xpath = "/lasdata/datasets/dataset[@ID='"+dsid+"']/variables/variable[@ID='"+varid+"']";
+	    return getVariablePropertyValue(xpath, group, property);
+    }
+    /**
+	 * Extract a property value from a variable given its XPath String
 	 * @param xpathValue The XPath of the variable to find.
-	 * @return value the property value
+	 * @return value the property
 	 *
 	 */
 	public String getVariablePropertyValue(String xpathValue, String group, String property) throws JDOMException {

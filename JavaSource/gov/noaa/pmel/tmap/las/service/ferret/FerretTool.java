@@ -97,8 +97,14 @@ public class FerretTool extends TemplateTool{
         }
         
         String tempDir   = lasFerretBackendConfig.getTempDir();
-        if ( tempDir.equals("") ) {
+        if ( !tempDir.endsWith("/") ) tempDir = tempDir + "/";
+        if ( tempDir.equals("") || tempDir == null) {
             tempDir = getResourcePath("resources/ferret/temp");
+        }
+
+        File td = new File(tempDir);
+        if ( !td.exists() ) {
+            td.mkdirs();
         }
         
         if ( lasBackendRequest.isCanceled() ) {
@@ -115,7 +121,6 @@ public class FerretTool extends TemplateTool{
         }
         
         log.debug("Creating Ferret journal file.");
-        
         mergeCommandTemplate(lasBackendRequest, jnlFile, "launch.vm" );
         
         log.debug("Finished creating Ferret journal file.");
