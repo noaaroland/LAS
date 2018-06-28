@@ -51,6 +51,8 @@
   <ferret>
    <land_type>contour</land_type>
    <fill_type>fill</fill_type>
+   <las_version>8.6.6/MDBI</las_version>
+   <palette>viridis</palette>
   </ferret>
 
  </properties>
