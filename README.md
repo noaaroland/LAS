@@ -1,8 +1,5 @@
 # LAS
 
-**This fork which should be up-to-date with the master has some special features specifically for the GFDL MDBI/LAS integration.
-If you're not installing this at GFDL for that purpose please use the [main repo](https://github.com/NOAA-PMEL/LAS).**
-
 The Live Access Server from NOAA/PMEL.  
 The NOAA-PMEL/LAS GitHub repository is now the primary repository for LAS source code and releases.
 

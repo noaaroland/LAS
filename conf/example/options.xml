@@ -314,54 +314,64 @@ at the edges of the plot (WMS-style plots). By default margins are shown.
       <title>Palette</title>
       <menu type="options" name="palette">
         <item values="default">Default</item>
-        <item values="viridis">Viridis</item>
-        <item values="plasma">Plasma</item>
-        <item values="inferno">Inferno</item>
-        <item values="magma">magma</item>
-        <item values="rainbow">default rainbow</item>
-        <item values="rnb2">alternative rainbow</item>
-        <item values="light_rainbow">pastel rainbow</item>
-        <item values="rainbow_by_levels">rainbow (by-level)</item>
-        <item values="ocean_temp">ocean temperature (by-value)</item>
-        <item values="land_sea_values">topography/bathymetry (by-value)</item>
-        <item values="etop_values">ocean/terrestrial elevation (by-value)</item>
-        <item values="light_bottom">light bottom</item>
-        <item values="light_centered">anomaly</item>
-        <item values="land_sea">topography/bathymetry</item>
-        <item values="dark_land_sea">dark topography/bathymetry</item>
-        <item values="ocean_blue">blue bathymetry</item>
-        <item values="terrestrial">topography</item>
-        <item values="dark_terrestrial">dark topography</item>
-    
-        <item values="bluescale">range of blues</item>
-        <item values="inverse_bluescale">inverse range of blues</item>
-        <item values="redscale">range of reds</item>
-        <item values="inverse_redscale">inverse range of reds</item>
-        <item values="greenscale">range of greens</item>
-        <item values="inverse_greenscale">inverse range of greens</item>
-        <item values="grayscale">range of grays</item>
-        <item values="inverse_grayscale">inverse range of grays</item>
 
-        <item values="low_blue">low_blue</item>
-        <item values="no_blue">no_blue</item>
-        <item values="low_green">low_green</item>
-        <item values="no_green">no_green</item>
-        <item values="low_red">low_red</item>
-        <item values="no_red">no_red</item>
+        <item values="rainbow">Rainbow (default)</item>
+        <item values="rnb2">Rainbow alternative</item>
+        <item values="light_rainbow">Rainbow pastel</item>
+        <item values="rainbow_by_levels">Rainbow (repeating by-level)</item>
+        <item values="light_bottom">Rainbow light bottom</item>
 
-        <item values="no_blue_centered">no_blue_centered</item>
-        <item values="no_green_centered">no_green_centered</item>
-        <item values="no_red_centered">no_red_centered</item>
-        <item values="white_centered">white_centered</item>
+        <item values="ocean_temp">Ocean temperature (consistent by-value)</item>
 
-        <item values="orange">solid orange</item>
-        <item values="gray">solid gray</item>
-        <item values="green">solid green</item>
-        <item values="red">solid red</item>
+        <item values="land_sea">topo: land and sea</item>
+        <item values="dark_land_sea">topo: land and sea, dark </item>
+        <item values="land_sea_values">topo: (consistent by value)</item>
+        <item values="etop_values">topo: etopo land and sea (consistent by value)</item>
+        <item values="ocean_blue">topo: blue bathymetry</item>
+        <item values="terrestrial">topo: land only</item>
+        <item values="dark_terrestrial">topo: land only, dark</item>
 
-        <item values="violet">solid violet</item>
-        <item values="white">solid white</item>
-        <item values="yellow">solid yellow</item>
+        <item values="inferno">CM inferno (purple to orange to yellow)</item>
+        <item values="magma">CM magma (purple to yellow)</item>
+        <item values="plasma">CM plasma (lighter purple to yellow)</item>
+        <item values="viridis">CM viridis (blue to green)</item>
+
+
+        <item values="cmocean_algae">CMocean algae (light to dark greens)</item>
+        <item values="cmocean_amp">CMocean amp (light to dark browns)</item>
+        <item values="cmocean_balance">CMocean balance (centered blue and brown)</item>
+        <item values="cmocean_curl">CMocean curl (centered green and brown)</item>
+        <item values="cmocean_deep">CMocean deep (yellow to blue)</item>
+        <item values="cmocean_delta">CMocean delta (centered green and blue)</item>
+        <item values="cmocean_dense">CMocean dense (blues and purples)</item>
+        <item values="cmocean_gray">CMocean gray (dark to light grays)</item>
+        <item values="cmocean_haline">CMocean haline (blue to green)</item>
+        <item values="cmocean_ice">CMocean ice (dark to light blue)</item>
+        <item values="cmocean_matter">CMocean matter (yellow to brown)</item>
+        <item values="cmocean_oxy">CMocean oxy (red/ gray/ yellow)</item>
+        <item values="cmocean_phase">CMocean phase (smoothly varying)</item>
+        <item values="cmocean_solar">CMocean solar (brown to yellow)</item>
+        <item values="cmocean_speed">CMocean speed (yellow to green)  </item>
+        <item values="cmocean_tempo">CMocean tempo (light to dark green)</item>
+        <item values="cmocean_thermal">CMocean thermal (purple to yellow)</item>
+        <item values="cmocean_turbid">CMocean turbid (yellow to brown)</item>
+
+        <item values="light_centered">centered anomaly</item>
+        <item values="white_centered">centered w/white at center</item>
+
+        <item values="no_blue_centered">centered no-blue</item>
+        <item values="no_green_centered">centered no-green</item>
+        <item values="no_red_centered">centered no-red</item>
+
+        <item values="bluescale">scale of blues</item>
+        <item values="bluescale">scale of blues reversed</item>
+        <item values="redscale">scale of reds</item>
+        <item values="redscale">scale of blues reversed</item>
+        <item values="greenscale">scale of greens</item>
+        <item values="greenscale">scale of greens reversed</item>
+        <item values="grayscale">scale of grays</item>
+        <item values="grayscale">scale of grays reversed</item>
+
       </menu>
     </option>
   </optiondef>
@@ -537,8 +547,7 @@ http://ferret.pmel.noaa.gov/Ferret/documentation/users-guide/customizing-plots/C
       <textfield name="fill_levels2"/>
     </option>
   </optiondef>
-
-  <optiondef name="palette2">
+    <optiondef name="palette2">
     <option>
       <help>Set the color scale of the second plot. Only applies to shaded plots.
       </help>

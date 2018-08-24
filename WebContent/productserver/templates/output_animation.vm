@@ -256,7 +256,6 @@
   function updateLASRequest(){
       var req = new LASRequest(initReq_xml);
       var theView = req.getProperty('ferret','view');
-      alert("timeInterval: " + timeInterval);
       req.setProperty('ferret','time_step',timeInterval);
       req.setProperty('product_server','ps_timeout',99999999);
       initStep = timeInterval;
