@@ -186,6 +186,11 @@ public class RequestInputFilter implements Filter {
             	response.sendError(HttpServletResponse.SC_NOT_FOUND, "Request contains an illegal query parameter.");
             	return;
             }
+            if ( !validateTemplates(request) ) {
+				LASAction.logerror(request, "Illegal request parameter value.", "Request contains a parameter value that is not allowed.");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Request contains an illegal query parameter value.");
+				return;
+			}
             if ( ! validBooleanValues(request) ) {
             	LASAction.logerror(request, "Illegal request parameter value.", "Request contains a parameter value that is not allowed.");
             	response.sendError(HttpServletResponse.SC_NOT_FOUND, "Request contains an illegal boolean query parameter value.");
@@ -253,6 +258,18 @@ public class RequestInputFilter implements Filter {
             }
 		    filterChain.doFilter( servletRequest, servletResponse );
 		    return;
+	}
+	public boolean validateTemplates(HttpServletRequest request) {
+		String value[] = request.getParameterValues("template");
+		if ( value != null ) {
+            for (int i = 0; i < value.length; i++) {
+                String v = value[i];
+                if (v.toLowerCase().contains(">") || v.toLowerCase().contains("<") || v.toLowerCase().contains("script")) {
+                    return false;
+                }
+            }
+        }
+		return true;
 	}
 	public void init(FilterConfig arg0) throws ServletException {
 		

@@ -726,7 +726,10 @@ if ( getYesOrNo("Do you want to install the example data set configuration") ) {
 
     print "Building addXML and the servlet war file.\n";
     system("ant addxml-build; ant deploy");
-
+    if ($? != 0) {
+        print "Build failed!\n";
+        exit 1;
+    }
     print "\n\n";
 
     createScripts();
