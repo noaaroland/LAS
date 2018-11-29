@@ -6,6 +6,8 @@ public class Util {
 	public static final String zonal = "zonal";
 	public static final String meridional = "meridional";
 	public static final String[] verticalComponentNames = new String[]{"vertical", "upward", "downward"};
+	public static final String numberFormat = "####.#######################";
+	public static final String zNumbrerFormat = "###############.###############";
 	public static int countOccurrences(String haystack, char needle)
 	{
 	    int count = 0;

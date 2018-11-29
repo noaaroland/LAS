@@ -40,6 +40,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import gov.noaa.pmel.tmap.exception.LASException;
 import gov.noaa.pmel.tmap.jdom.LASDocument;
 
 import java.io.File;
@@ -47,6 +48,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
@@ -63,14 +68,20 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
+import gov.noaa.pmel.tmap.jdom.filter.AttributeFilter;
+import gov.noaa.pmel.tmap.las.jdom.LASConfig;
 import gov.noaa.pmel.tmap.las.proxy.LASProxy;
+import gov.noaa.pmel.tmap.las.util.Category;
+import gov.noaa.pmel.tmap.las.util.Dataset;
 import org.apache.http.HttpException;
 import org.jdom.Comment;
+import org.jdom.Content;
 import org.jdom.DocType;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.EntityRef;
 import org.jdom.JDOMException;
+import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
 import org.joda.time.Chronology;
@@ -98,6 +109,7 @@ import thredds.catalog.ThreddsMetadata.GeospatialCoverage;
 import thredds.catalog.ThreddsMetadata.Range;
 import thredds.catalog.ThreddsMetadata.Variable;
 import thredds.catalog.ThreddsMetadata.Variables;
+import thredds.client.catalog.Access;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.IndexIterator;
@@ -154,7 +166,7 @@ public class ADDXMLProcessor {
 		"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss",
 		"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss"};
 
-	private static final DecimalFormat decimalFormat = new DecimalFormat("###############.###############");
+	private static final DecimalFormat decimalFormat = new DecimalFormat(Util.numberFormat);
 
 	private static final String pattern_with_hours = "yyyy-MM-dd HH:mm:ss";
 
@@ -301,50 +313,6 @@ public class ADDXMLProcessor {
 
 		uaf = command_parameters.getBoolean("metadata");
 
-		// Retrieve user credentials info.
-		String provider = command_parameters.getString("auth_provider");
-		String username = command_parameters.getString("username");
-		String password = command_parameters.getString("password");
-
-		// If credentials provider class was not given, then use the default implementation.
-		LASCredentialsProvider provider_obj = null;
-		if(provider == null){
-			provider_obj = new SimpleCredentialsProvider();
-
-			// Otherwise, use the given class.
-		}else{
-
-			// Load the credentials provider class.
-			java.lang.ClassLoader loader = java.lang.ClassLoader.getSystemClassLoader();
-			Class provider_class = null;
-			try{
-				provider_class = loader.loadClass(provider);
-			}catch(ClassNotFoundException ee){
-				System.err.println("Error loading authentication credentials provider class.");
-				System.err.println(ee.getMessage());
-				System.exit(1);
-			}
-
-			// Instantiate the credentials provider object.
-			try{
-				provider_obj = (LASCredentialsProvider)provider_class.newInstance();
-			}catch(Exception ee){
-				System.err.println("Error creating authentication credentials provider object.");
-				System.err.println(ee.getMessage());
-				System.exit(1);
-			}
-		}
-
-		// If given, set user credentials with the provider object.
-		if(username != null){
-			provider_obj.setUsername(username);
-		}
-		if(password != null){
-			provider_obj.setPassword(password);
-		}
-
-		// Register the credentials provider.
-		//      ucar.nc2.dataset.HttpClientManager.init(provider_obj,"addXML-" + version_string);   
 
 		int total = data.length + thredds.length;
 		if (!oneDataset && total > 1) {
@@ -590,6 +558,22 @@ public class ADDXMLProcessor {
 						outputXML(ofile, categories, true);
 					}
 				}
+				if ( uaf ) {
+					LASConfig configToFilter = new LASConfig();
+                    try {
+                        String content = "<las_data>" + readFile(ofile, StandardCharsets.UTF_8) + "</las_data>";
+						JDOMUtils.XML2JDOM(content, configToFilter);
+						List<Element> cats = configToFilter.getRootElement().getChildren("las_categories");
+                        noteEmpty(cats, configToFilter);
+                        configToFilter.write(ofile.replace(".xml","")+"002.xml");
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (JDOMException e) {
+						e.printStackTrace();
+					} catch (LASException e) {
+                        e.printStackTrace();
+                    }
+                }
 			}
 		}
 
@@ -616,6 +600,36 @@ public class ADDXMLProcessor {
 		}
 	}
 
+	public void noteEmpty(List<Element> categories, LASConfig config) throws JDOMException, LASException {
+        for (int i = 0; i < categories.size(); i++) {
+            Element cat = categories.get(i);
+            List<Element> filters = cat.getChildren("filter");
+            List<Element> grandkids = cat.getChildren("category");
+            if ( filters.size() > 0 ) {
+                String filtername = filters.get(0).getAttributeValue("equals-tag");
+                ElementFilter filter = new ElementFilter(filtername);
+                Iterator<Element> dataset = config.getDescendants(filter);
+                if ( !dataset.hasNext() ) {
+                    Element p = cat.getParentElement();
+                    Element remove = cat;
+                    while ( p != null && p.getChildren("category").size() == 1 ) {
+                        remove = p;
+                        p = p.getParentElement();
+                    }
+                    p.removeContent(remove);
+                }
+
+            } else {
+                noteEmpty(grandkids, config);
+            }
+        }
+    }
+    static String readFile(String path, Charset encoding)
+            throws IOException
+    {
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, encoding);
+    }
 	public Document LASConfig(String data, String type) {
 
 		// Try to read this as a netCDF file or OPeNDAP netCDF data source.
@@ -753,7 +767,6 @@ public class ADDXMLProcessor {
 		fileCount++;
 		return ofile;
 	}
-
 	/**
 	 * createXMLfromTHREDDSCatalog
 	 *
@@ -782,7 +795,6 @@ public class ADDXMLProcessor {
 		Set<AxisBean> AxisBeans = new HashSet<AxisBean>();
 		List<CategoryBean> CategoryBeans = new ArrayList<CategoryBean>();
 
-
 		List ThreddsDatasets = catalog.getDatasets();
 		Iterator di = ThreddsDatasets.iterator();
 		if ( category ) {
@@ -792,7 +804,7 @@ public class ADDXMLProcessor {
 				if ( esg ) {
 					// Do this below for ESG...
 				} else if ( uaf ) {
-					cb = processUAFCategories(ThreddsDataset);
+					cb = processUAFCategories(null, ThreddsDataset);
 				}   else {
 					cb = processCategories(ThreddsDataset);
 				} 
@@ -941,6 +953,35 @@ public class ADDXMLProcessor {
         }
 		return doc;
 	}
+	public static CategoryBean cleanCategoryBean(CategoryBean cb) {
+	    CategoryBean top = new CategoryBean();
+	    top.setName(cb.getName());
+	    top.setID(cb.getID());
+	    List<CategoryBean> children = cb.getCategories();
+	    List<FilterBean> filters = cb.getFilters();
+	    List<CategoryBean> clean = checkCategory(children, filters);
+	    top.setCategories(clean);
+	    return top;
+    }
+    public static List<CategoryBean> checkCategory(List<CategoryBean> categories, List<FilterBean> filters) {
+        if ( categories.size() == 1 && filters.size() == 0 ) {
+            // This category is useless, use the child
+            CategoryBean child = categories.get(0);
+            List<CategoryBean> children = child.getCategories();
+            List<FilterBean> childfilters = child.getFilters();
+            categories = checkCategory(children, childfilters);
+        } else {
+            if ( filters.size() == 0 ) {
+                for (int i = 0; i < categories.size(); i++) {
+                    CategoryBean child = categories.get(i);
+                    List<CategoryBean> children = child.getCategories();
+                    List<FilterBean> childfilters = child.getFilters();
+                    categories = checkCategory(children, childfilters);
+                }
+            }
+        }
+        return categories;
+    }
 	/**
 	 * processDataset
 	 *
@@ -1435,7 +1476,7 @@ public class ADDXMLProcessor {
 			    double step = Math.abs(Double.valueOf(parts[1]).doubleValue());
                 NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
                 DecimalFormat fmt = (DecimalFormat) nf;
-                fmt.applyPattern("####.####");
+                fmt.applyPattern(Util.numberFormat);
 			    axis.getArange().setStep(fmt.format(step));
             } else {
                 axis.getArange().setStep(parts[1]);
@@ -1698,7 +1739,7 @@ public class ADDXMLProcessor {
 							zAxis.setType("z");
 							zAxis.setUnits(zunits);
 							String[] zvs = zvalues.split("\\s+");
-							DecimalFormat format = new DecimalFormat("###############.###############");
+							DecimalFormat format = new DecimalFormat(Util.zNumbrerFormat);
 							for (int zi = 0; zi < zvs.length; zi++ ) {
 								double zd = Double.valueOf(zvs[zi]).doubleValue();
 								zvs[zi] = format.format(zd);
@@ -2090,50 +2131,92 @@ public class ADDXMLProcessor {
 		}
 		return topCB;
 	}
-	public static CategoryBean processUAFCategories(InvDataset ThreddsDataset) {
+	public static CategoryBean processUAFCategories(InvDataset parent, InvDataset dataset) {
+
+	    // "Top Dataset" is the name THREDDS gives a catalog element in a catalog ref that has no name.
+        // We don't want that name in our hierarchy...
+        if ( dataset.getName().contains("TDS quality") ) return null;
+
 	    String idurl = null;
-        if (ThreddsDataset.getAccess(ServiceType.OPENDAP) != null) {
-            idurl = ThreddsDataset.getAccess(ServiceType.OPENDAP).getStandardUrlName();
+        if (dataset.getAccess(ServiceType.OPENDAP) != null) {
+            idurl = dataset.getAccess(ServiceType.OPENDAP).getStandardUrlName();
         }
 	    String id;
 	    if ( idurl != null && !idurl.isEmpty() ) {
             id = encodeID(idurl);
         } else {
-            id = fixid(ThreddsDataset);
+            id = fixid(dataset);
         }
-		//String name = ThreddsDataset.getFullName();
-		String name  = ThreddsDataset.getName();
-		CategoryBean category = makeParent(ThreddsDataset);
-		if ( name.startsWith("THREDDS Server Default Catalog : You must change") ) {
 
-			name = "Data Catalog";
 
-		}
+        List<InvDataset> datasets = dataset.getDatasets();
+        boolean access = removeRubric(datasets);
+
+        if ( (datasets.size() == 1 && !access && (dataset.getName().equals(datasets.get(0).getName()))) || dataset.getName().contains("You must change this") || ( datasets.size() > 0 && datasets.get(0).getName().equals("Top Dataset") ) ) {
+
+            if ( datasets.size() == 1 && datasets.get(0).getName().equals("Top Dataset") ) {
+
+                    dataset = datasets.get(0);
+                    datasets = dataset.getDatasets();
+                    access = removeRubric(datasets);
+                    if ( datasets.size() == 1 ) {
+                        dataset = datasets.get(0);
+                        datasets = dataset.getDatasets();
+                        access = removeRubric(datasets);
+                    }
+
+            } else {
+
+                // This means the data sets level is superflous so we're going to skip it and go to the child.
+                dataset = datasets.get(0);
+
+                // Recompute access
+                datasets = dataset.getDatasets();
+                for (int i = 0; i < datasets.size(); i++) {
+                    InvAccess a = datasets.get(i).getAccess(ServiceType.OPENDAP);
+                    if (a != null) {
+                        access = true;
+                    }
+                }
+            }
+        }
+
+        String name  = dataset.getName();
+		CategoryBean category = new CategoryBean();
+
 		category.setName(name);
 		category.setID("category-"+id);
 
-		if ( ThreddsDataset.hasAccess() && ThreddsDataset.getAccess(ServiceType.OPENDAP) != null ) {
-			String url = ThreddsDataset.getAccess(ServiceType.OPENDAP).getStandardUrlName();
-			// If necessary fix the catalog name:
+		if ( access ) {
+            for (int i = 0; i < datasets.size(); i++) {
 
-			category.setName(name);
-			String curl = DODSNetcdfFile.canonicalURL(url);
-			if ( !skip(curl) ) {
-				FilterBean filter = new FilterBean();
-				filter.setAction("apply-dataset");
-				String tag = encodeID(url);
-				filter.setEqualstag(tag);
-				category.addFilter(filter);
-			}
+                InvDataset child = datasets.get(i);
+                InvAccess ax = child.getAccess(ServiceType.OPENDAP);
+                if ( ax != null ) {
+                    CategoryBean childCat = new CategoryBean();
+                    childCat.setName(child.getName());
+                    String url = ax.getStandardUrlName();
+                    // If necessary fix the catalog name:
+                    String curl = DODSNetcdfFile.canonicalURL(url);
+                    if (!skip(curl)) {
+                        FilterBean filter = new FilterBean();
+                        filter.setAction("apply-dataset");
+                        String tag = encodeID(url);
+                        filter.setEqualstag(tag);
+                        childCat.addFilter(filter);
+                    }
+                    category.addCategory(childCat);
+                }
+            }
 		} else {
 			List<CategoryBean> subCats = new ArrayList<CategoryBean>();
-			for (Iterator subDatasetsIt = ThreddsDataset.getDatasets().iterator(); subDatasetsIt.hasNext(); ) {
+			for (Iterator subDatasetsIt = dataset.getDatasets().iterator(); subDatasetsIt.hasNext(); ) {
 				InvDataset subDataset = (InvDataset) subDatasetsIt.next();
 				// Process the sub-categories
 				if (!subDataset.getName().contains("automated cleaning process") ) {
 					System.out.println("\tsub-cat is "+subDataset.getName());
-					CategoryBean subCat = processUAFCategories(subDataset);
-					if ( !subCat.equals(category) && (subCat.getCategories().size() > 0 || subCat.getFilters().size() > 0 ) ) {
+					CategoryBean subCat = processUAFCategories(dataset, subDataset);
+					if ( subCat != null &&  !subCat.equals(category) && (subCat.getCategories().size() > 0 || subCat.getFilters().size() > 0 ) ) {
 						subCats.add(subCat);
 					}
 				}
@@ -2163,6 +2246,21 @@ public class ADDXMLProcessor {
 		}
 		return parent;
 	}
+	public static boolean removeRubric(List<InvDataset> datasets) {
+	    boolean access = false;
+        List<InvDataset> remove = new ArrayList<>();
+        for (int i = 0; i < datasets.size(); i++) {
+            InvAccess a = datasets.get(i).getAccess(ServiceType.OPENDAP);
+            if (datasets.get(i).getName().contains("TDS Quality")) {
+                remove.add(datasets.get(i));
+            }
+            if ( a != null ) {
+                access = true;
+            }
+        }
+        datasets.removeAll(remove);
+        return access;
+    }
 	/**
 	 * processCategories
 	 *
@@ -2541,7 +2639,7 @@ public class ADDXMLProcessor {
 					}
 					NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 					DecimalFormat fmt = (DecimalFormat) nf;
-					fmt.applyPattern("####.####");
+					fmt.applyPattern(Util.numberFormat);
 					eaxis.setType("e");
 					eaxis.setElement(eAxis.getShortName() + "-" + "e" + "-" + elementName);
 					eaxis.setArange(null);
@@ -3255,7 +3353,7 @@ public class ADDXMLProcessor {
 	static private AxisBean makeGeoAxisFrom2D(CoordinateAxis2D axis, String type, String id) {    
 		NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 		DecimalFormat fmt = (DecimalFormat) nf;
-		fmt.applyPattern("####.####");
+		fmt.applyPattern(Util.numberFormat);
 
 		AxisBean axisbean = new AxisBean();
 		axisbean.setElement(axis.getShortName() + "-" + type + "-" + id);
@@ -3276,7 +3374,7 @@ public class ADDXMLProcessor {
 	static private AxisBean makeGeoAxis(CoordinateAxis1D axis, String type, String id) {
 		NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 		DecimalFormat fmt = (DecimalFormat) nf;
-		fmt.applyPattern("####.####");
+		fmt.applyPattern(Util.numberFormat);
 		AxisBean axisbean = new AxisBean();
 		axisbean.setType(type);
 		axisbean.setElement(axis.getShortName() + "-" + type + "-" + id);
@@ -3324,7 +3422,7 @@ public class ADDXMLProcessor {
 	static private AxisBean makeVerticalAxis(CoordinateAxis1D axis, VerticalTransform vt, String type, String id) {
 		NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 		DecimalFormat fmt = (DecimalFormat) nf;
-		fmt.applyPattern("####.####");
+		fmt.applyPattern(Util.numberFormat);
 		AxisBean axisbean = new AxisBean();
 		axisbean.setType(type);
 		axisbean.setElement(axis.getShortName() + "-" + type + "-" + id);

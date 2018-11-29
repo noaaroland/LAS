@@ -230,6 +230,9 @@ public class DatasetBean extends LasBean {
 		}
 		groupMap.put(name, value);
 	}
+	public HashMap<String, String> getPropertyGroup(String group) {
+		return properties.get(group);
+	}
 	public Element toXml(boolean seven) {
 	    String e = this.getElement();
         boolean null_bean = false;

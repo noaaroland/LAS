@@ -179,7 +179,14 @@ public class OptionsWidget extends VerticalPanel {
 			if (w instanceof TextBox) {
 				TextBox t = (TextBox) w;
 				if (t.getText() != null && !t.getText().equals("")) {
-					state.put(t.getName(), t.getText());
+					String text = t.getText();
+					String name = t.getName();
+					if ( name != null && name.equals("expression") ) {
+						if ( text != null && !text.isEmpty() ) {
+							text = text.replaceAll("\\+", "_ps_");
+						}
+					}
+					state.put(name, text);
 				}
 			} else if (w instanceof ListBox) {
 				ListBox l = (ListBox) w;

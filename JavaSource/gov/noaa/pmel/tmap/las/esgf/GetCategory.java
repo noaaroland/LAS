@@ -17,7 +17,6 @@ import org.jdom.output.XMLOutputter;
 
 import thredds.catalog.InvCatalog;
 import thredds.catalog.InvCatalogFactory;
-import visad.data.in.TimeFactorer;
 import gov.noaa.pmel.tmap.addxml.ADDXMLProcessor;
 import gov.noaa.pmel.tmap.addxml.AxisBean;
 import gov.noaa.pmel.tmap.addxml.DatasetBean;

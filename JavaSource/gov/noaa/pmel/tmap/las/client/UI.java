@@ -2138,7 +2138,7 @@ public class UI extends BaseUI implements EntryPoint {
             xView = "xy";
             xOperationID = "Plot_2D_XY_zoom";
             xOptionID = "Options_2D_image_contour_xy_7";
-            Window.alert("Please choose a data set.");
+            Window.alert("Please choose a different data set.");
         } 
 
         @Override

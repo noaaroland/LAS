@@ -787,8 +787,12 @@ public class ErddapProcessor {
 				if ( !zVar.keySet().isEmpty() ) {
 					zn = zVar.keySet().iterator().next();
 				}
-				
-				db.setProperty("tabledap_access", "all_variables", allv.toString());
+
+				HashMap<String, String> tabledap_access = db.getPropertyGroup("tabledap_access");
+				// Don't add it unless it hasn't been previously added. It might have come off the command line.
+				if ( tabledap_access == null || ( tabledap_access != null && !tabledap_access.containsKey("all_variables")) ) {
+                    db.setProperty("tabledap_access", "all_variables", allv.toString());
+                }
 				/*
 				 * There is a page that will show thumbnails of property-property plots.
 				 * 
@@ -1054,6 +1058,7 @@ public class ErddapProcessor {
 					message = e.getMessage();
 			}
 			System.err.println("Error opening: "+url+id+" "+message);
+			e.printStackTrace(System.err);
 		} finally {
 			if ( stream != null ) {
 				try {

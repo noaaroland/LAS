@@ -5,7 +5,7 @@
 	<property name="jakarta.home" value="@JAKARTA_HOME@" />
 	<property name="jakarta.lib" value="@JAKARTA_LIB@" />
         <property name="map_version" value="1.1"/>
-        <property name="version" value="8.4"/>
+        <property name="version" value="8.6.9"/>
 	<property name="deploy.home"
 		value="${jakarta.home}/webapps/${app.name}" />
 	<property name="dist.war"
@@ -260,6 +260,9 @@
 					dir="WebContent/WEB-INF/lib">
 					<include name="**/*.jar" />
 				</fileset>
+				<fileset dir="${jakarta.lib}">
+                	<include name="**/*.jar" />
+                </fileset>
 			</classpath>
 		</javac>
 	</target>

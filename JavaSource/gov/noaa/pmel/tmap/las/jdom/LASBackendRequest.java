@@ -16,6 +16,8 @@ import gov.noaa.pmel.tmap.las.util.Constraint;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -346,6 +348,11 @@ public class LASBackendRequest extends LASDocument {
                     // If it's defined add it.  Otherwise skip it.
                     String name = property.getChildText("name");
                     String value = property.getChildText("value");
+                    if ( type.equals("ferret") && name.equals("expression") ) {
+                        if ( value != null && !value.isEmpty() ) {
+                            value = value.replaceAll("_ps_", "+");
+                        }
+                    }
                     if ( value != null && value != "" ) {
                         symbols.put(type+"_"+name, value);
                     }

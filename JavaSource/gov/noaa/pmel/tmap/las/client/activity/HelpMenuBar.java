@@ -82,7 +82,7 @@ public class HelpMenuBar extends Composite {
         Command tutorialsCmd = new Command() {
             @Override
             public void execute() {
-                Window.open("http://ferret.pmel.noaa.gov/LAS/documentation/introduction/using-the-las-user-interface#videos", "_blank", "scrollbars=1");
+                Window.open("https://ferret.pmel.noaa.gov/LAS/documentation/introduction/using-the-las-user-interface#videos", "_blank", "scrollbars=1");
             }
         };
         videoTutorialsItem.setCommand(tutorialsCmd);
@@ -90,7 +90,7 @@ public class HelpMenuBar extends Composite {
         Command docsCmd = new Command() {
             @Override
             public void execute() {
-                Window.open("http://ferret.pmel.noaa.gov/LAS/home/documentation/introduction/using-the-las-user-interface/", "_blank", "scrollbars=1");
+                Window.open("https://ferret.pmel.noaa.gov/LAS/documentation/end-user-documentation", "_blank", "scrollbars=1");
             }
         };
         onlineDocsItem.setCommand(docsCmd);

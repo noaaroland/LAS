@@ -498,7 +498,7 @@ public class BaseUI {
 
         // When loading data sets with data_url, if they are not processed the value is the string "null" if it fails.
         if ( xDSID != null && xDSID.equals("null") ) {
-            Window.alert("LAS was unable to load the data set you requested. There may be a problem with the CF conventions compliance.");
+            Window.alert("LAS was unable to load the data set you requested. There may be a problem with the CF conventions compliance or data access.");
         }
 
         // Probably same here...
